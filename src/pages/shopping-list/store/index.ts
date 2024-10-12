@@ -5,6 +5,7 @@ const useProductsListStore = create<Store>((set) => ({
   products: [],
   addedProducts: [],
   selectedProducts: {},
+  deletedProducts: [],
 
   setProducts: (products: Product[]) =>
     set((state) => ({
@@ -20,16 +21,23 @@ const useProductsListStore = create<Store>((set) => ({
 
   removeSelectedProducts: () =>
     set((state) => {
-      const filteredProducts = state.products.filter(
-        (product) => !state.selectedProducts[product.id],
-      );
-      const filteredAddedProducts = state.addedProducts.filter(
-        (product) => !state.selectedProducts[product.id],
-      );
+      const deletedProducts = Object.keys(state.selectedProducts)
+        .map(
+          (id) =>
+            state.products.find((product) => product.id === id) ||
+            state.addedProducts.find((product) => product.id === id),
+        )
+        .filter((product): product is Product => !!product); // Ensure only Products are kept
+
       return {
         ...state,
-        products: filteredProducts,
-        addedProducts: filteredAddedProducts,
+        products: state.products.filter(
+          (product) => !state.selectedProducts[product.id],
+        ),
+        addedProducts: state.addedProducts.filter(
+          (product) => !state.selectedProducts[product.id],
+        ),
+        deletedProducts: [...state.deletedProducts, ...deletedProducts],
         selectedProducts: {},
       };
     }),
