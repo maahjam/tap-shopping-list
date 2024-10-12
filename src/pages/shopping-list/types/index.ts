@@ -30,6 +30,7 @@ export interface State {
   products: Product[];
   selectedProducts: Record<string, boolean>;
   addedProducts: Product[];
+  deletedProducts: Product[];
 }
 
 export interface Actions {

@@ -16,7 +16,7 @@ import { AddProductForm } from "./components/add-product-form";
 const DEFAULT_PAGE_NUMBER = 1;
 
 const ProductsList: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [newProductName, setNewProductName] = useState<string>("");
 
   const initialState = {
@@ -53,6 +53,7 @@ const ProductsList: React.FC = () => {
       ...prevState,
       currentPage: page,
     }));
+    setSearchParams({ page: page.toString() });
   };
 
   useEffect(() => {
@@ -62,7 +63,7 @@ const ProductsList: React.FC = () => {
   const handleAddProduct = () => {
     if (newProductName.trim()) {
       const newProduct: Product = {
-        id: Date.now().toString(),
+        id: `a${Date.now().toString()}`,
         title: newProductName,
         image: fallback,
         price: Math.random() * 100,
@@ -78,17 +79,23 @@ const ProductsList: React.FC = () => {
   };
 
   const filteredAddedProducts = addedProducts.filter(
-    (product) => product.page === pageQueryState.currentPage,
+    (product) => product.page === pageQueryState.currentPage
   );
-
-  // Merge fetched products with locally added products before rendering
-  const mergedProducts = [...products, ...filteredAddedProducts];
+  
+  const deletedProductIds = useProductsListStore((state) =>
+    state.deletedProducts.map((product) => product.id)
+  );
+  
+  // Merge fetched products with locally added products and filter out deleted products
+  const mergedProducts = [...products, ...filteredAddedProducts].filter(
+    (product) => !deletedProductIds.includes(product.id)
+  );  
 
   if (isLoading) return <Loading />;
   if (error) return <ErrorMessage errorMessage={error.message} />;
 
   return (
-    <div className="flex flex-col w-full  h-full">
+    <div className="flex flex-col w-full h-full">
       <Header onClear={handleClearProducts} />
 
       <ProductList products={mergedProducts} />
